@@ -87,12 +87,12 @@ public class PanelGame extends JPanel implements KeyListener {
         JFrame frame = new JFrame("Juego de Carreras Matemáticas");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
-        
+
         JPanel mainPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         PanelGame centralPanel = new PanelGame("image_test2.jpg");
         LayerPanel leftPanel = new LayerPanel("image_test1.jpg");
-        LayerPanel rightPanel = new LayerPanel("image_test3.jpg");
+        JPanel rightPanel = createRightPanel();
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = 1;
@@ -103,7 +103,7 @@ public class PanelGame extends JPanel implements KeyListener {
         mainPanel.add(leftPanel, gbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 2;
+        gbc.weightx = 3;
         mainPanel.add(centralPanel, gbc);
 
         gbc.gridx = 2;
@@ -112,6 +112,53 @@ public class PanelGame extends JPanel implements KeyListener {
 
         frame.add(mainPanel);
         frame.setVisible(true);
+    }
+
+    private static JPanel createRightPanel() {
+        JPanel rightPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // Panel para la suma
+        JPanel sumaPanel = new JPanel();
+        sumaPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        sumaPanel.add(new JLabel("Suma a resolver:"));
+
+        // Panel para el puesto
+        JPanel puestoPanel = new JPanel();
+        puestoPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        puestoPanel.add(new JLabel("Puesto del jugador:"));
+
+        // Panel para el puntaje
+        JPanel puntajePanel = new JPanel();
+        puntajePanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        puntajePanel.add(new JLabel("Puntaje del jugador:"));
+
+        // Panel para el mapa
+        JPanel mapaPanel = new JPanel();
+        mapaPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        mapaPanel.add(new JLabel("Mapa de la carrera:"));
+        
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 0.1;
+        gbc.fill = GridBagConstraints.BOTH;
+        rightPanel.add(sumaPanel, gbc);
+
+        gbc.gridy = 1;
+        gbc.weighty = 0.1;
+        rightPanel.add(puestoPanel, gbc);
+
+        gbc.gridy = 2;
+        gbc.weighty = 0.1;
+        rightPanel.add(puntajePanel, gbc);
+
+        gbc.gridy = 3;
+        gbc.weighty = 0.4;
+        rightPanel.add(mapaPanel, gbc);
+
+        return rightPanel;
     }
 }
 
