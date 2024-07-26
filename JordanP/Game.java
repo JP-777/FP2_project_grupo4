@@ -5,7 +5,7 @@ import java.awt.event.KeyListener;
 
 public class PanelGame extends JPanel implements KeyListener {
     private JLabel player1, player2, player3;
-    private int player1X, player2X, player3X;
+    private int player1X, player1Y, player2X, player2Y, player3X, player3Y;
     private final int playerWidth = 50;
     private final int playerHeight = 50;
     private Image imagen;
@@ -17,7 +17,7 @@ public class PanelGame extends JPanel implements KeyListener {
 
         this.imagen = new ImageIcon(rutaImagen).getImage();
 
-        player1 = createPlayerLabel("player1.png");
+        player1 = createPlayerLabel("pato.png");
         player2 = createPlayerLabel("player2.png");
         player3 = createPlayerLabel("player3.png");
 
@@ -36,7 +36,9 @@ public class PanelGame extends JPanel implements KeyListener {
     }
 
     private JLabel createPlayerLabel(String imagePath) {
-        JLabel label = new JLabel(new ImageIcon(imagePath));
+        ImageIcon icon = new ImageIcon(imagePath);
+        Image scaledImage = icon.getImage().getScaledInstance(playerWidth, playerHeight, Image.SCALE_SMOOTH);
+        JLabel label = new JLabel(new ImageIcon(scaledImage));
         label.setSize(playerWidth, playerHeight);
         return label;
     }
@@ -48,22 +50,25 @@ public class PanelGame extends JPanel implements KeyListener {
         int initialY = getHeight() - playerHeight - 20;
 
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_W: player1X = 0; break;
-            case KeyEvent.VK_S: player1X = thirdWidth; break;
-            case KeyEvent.VK_D: player1X = 2 * thirdWidth; break;
+            case KeyEvent.VK_W: player1Y = Math.max(player1Y - 10, 0); break;
+            case KeyEvent.VK_S: player1Y = Math.min(player1Y + 10, getHeight() - playerHeight); break;
+            case KeyEvent.VK_A: player1X = Math.max(player1X - 10, 0); break;
+            case KeyEvent.VK_D: player1X = Math.min(player1X + 10, thirdWidth - playerWidth); break;
 
-            case KeyEvent.VK_I: player2X = 0; break;
-            case KeyEvent.VK_J: player2X = thirdWidth; break;
-            case KeyEvent.VK_L: player2X = 2 * thirdWidth; break;
+            case KeyEvent.VK_I: player2Y = Math.max(player2Y - 10, 0); break;
+            case KeyEvent.VK_K: player2Y = Math.min(player2Y + 10, getHeight() - playerHeight); break;
+            case KeyEvent.VK_J: player2X = Math.max(player2X - 10, thirdWidth); break;
+            case KeyEvent.VK_L: player2X = Math.min(player2X + 10, 2 * thirdWidth - playerWidth); break;
 
-            case KeyEvent.VK_UP: player3X = 0; break;
-            case KeyEvent.VK_LEFT: player3X = thirdWidth; break;
-            case KeyEvent.VK_RIGHT: player3X = 2 * thirdWidth; break;
+            case KeyEvent.VK_UP: player3Y = Math.max(player3Y - 10, 0); break;
+            case KeyEvent.VK_DOWN: player3Y = Math.min(player3Y + 10, getHeight() - playerHeight); break;
+            case KeyEvent.VK_LEFT: player3X = Math.max(player3X - 10, 2 * thirdWidth); break;
+            case KeyEvent.VK_RIGHT: player3X = Math.min(player3X + 10, getWidth() - playerWidth); break;
         }
 
-        player1.setLocation(player1X, initialY);
-        player2.setLocation(player2X, initialY);
-        player3.setLocation(player3X, initialY);
+        player1.setLocation(player1X, player1Y);
+        player2.setLocation(player2X, player2Y);
+        player3.setLocation(player3X, player3Y);
     }
 
     @Override
