@@ -1,10 +1,9 @@
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Image;
-import java.awt.Insets;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.Random;
@@ -23,37 +22,33 @@ public class GamePanel extends JPanel implements KeyListener {
     private int player1X, player2X, player3X;
     private final int playerWidth = 50;
     private final int playerHeight = 50;
-    private Image imagen;
+    private Image trackImage;
+    private Image player1Image, player2Image, player3Image;
     private int correctAnswer;
     private Random rand;
 
-    public GamePanel(String rutaImagen) {
+    public GamePanel(String trackImagePath, String player1Path, String player2Path, String player3Path) {
         setFocusable(true);
         addKeyListener(this);
         setLayout(null);
 
-        this.imagen = new ImageIcon(rutaImagen).getImage();
+        this.trackImage = new ImageIcon(trackImagePath).getImage();
+        this.player1Image = new ImageIcon(player1Path).getImage();
+        this.player2Image = new ImageIcon(player2Path).getImage();
+        this.player3Image = new ImageIcon(player3Path).getImage();
 
-        player1 = createPlayerLabel("Claudia\\imagenes\\jug1.jpg");
-        player2 = createPlayerLabel("Claudia\\imagenes\\jug2.jpg");
-        player3 = createPlayerLabel("imagenes/jug3.jpg");
+        // Crear etiquetas para jugadores
+        player1 = createPlayerLabel(player1Image);
+        player2 = createPlayerLabel(player2Image);
+        player3 = createPlayerLabel(player3Image);
 
-        player1X = 0;
-        player2X = getWidth() / 3;
-        player3X = 2 * getWidth() / 3;
-
-        int initialY = getHeight() - playerHeight - 20;
-        player1.setBounds(player1X, initialY, playerWidth, playerHeight);
-        player2.setBounds(player2X, initialY, playerWidth, playerHeight);
-        player3.setBounds(player3X, initialY, playerWidth, playerHeight);
-
+        // Añadir los jugadores al panel
         add(player1);
         add(player2);
         add(player3);
 
         questionLabel = new JLabel("", SwingConstants.CENTER);
         questionLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        questionLabel.setBounds(getWidth() / 2 - 50, 20, 200, 30);
         add(questionLabel);
 
         answerLabels = new JLabel[3];
@@ -62,25 +57,60 @@ public class GamePanel extends JPanel implements KeyListener {
             answerLabels[i].setFont(new Font("Arial", Font.BOLD, 20));
             answerLabels[i].setOpaque(true);
             answerLabels[i].setBackground(Color.WHITE);
-            answerLabels[i].setBounds(getWidth() / 3 * i + 50, 60, 100, 30);
             add(answerLabels[i]);
         }
 
         finishLines = new JLabel[3];
         for (int i = 0; i < finishLines.length; i++) {
             finishLines[i] = new JLabel(new ImageIcon("imagenes/finish.png"));
-            finishLines[i].setBounds(getWidth() / 3 * i + getWidth() / 6, 10, 50, 50);
             add(finishLines[i]);
         }
 
         rand = new Random();
         generateQuestion();
+
+        // Ajustar las posiciones de los componentes cuando se cambia el tamaño del panel
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                updateComponentPositions();
+            }
+        });
+
+        // Inicializar posiciones de los jugadores
+        updateComponentPositions();
     }
 
-    private JLabel createPlayerLabel(String imagePath) {
-        JLabel label = new JLabel(new ImageIcon(imagePath));
+    private JLabel createPlayerLabel(Image image) {
+        JLabel label = new JLabel(new ImageIcon(image));
         label.setSize(playerWidth, playerHeight);
         return label;
+    }
+
+    private void updateComponentPositions() {
+        int width = getWidth();
+        int height = getHeight();
+        int thirdWidth = width / 3;
+
+        // Actualizar las posiciones de los jugadores
+        player1X = 0;
+        player2X = thirdWidth;
+        player3X = 2 * thirdWidth;
+        int initialY = height - playerHeight - 20;
+        player1.setBounds(player1X, initialY, playerWidth, playerHeight);
+        player2.setBounds(player2X, initialY, playerWidth, playerHeight);
+        player3.setBounds(player3X, initialY, playerWidth, playerHeight);
+
+        // Actualizar las posiciones de las etiquetas de respuestas
+        questionLabel.setBounds(width / 2 - 100, 20, 200, 30);
+        for (int i = 0; i < answerLabels.length; i++) {
+            answerLabels[i].setBounds(thirdWidth * i + 50, 60, 100, 30);
+        }
+
+        // Actualizar las posiciones de las líneas de meta
+        for (int i = 0; i < finishLines.length; i++) {
+            finishLines[i].setBounds(thirdWidth * i + thirdWidth / 2 - 25, 10, 50, 50);
+        }
     }
 
     private void generateQuestion() {
@@ -88,13 +118,28 @@ public class GamePanel extends JPanel implements KeyListener {
         int num2 = rand.nextInt(10) + 1;
         correctAnswer = num1 + num2;
         questionLabel.setText(num1 + " + " + num2 + " = ?");
-
+    
+        // Crear respuestas incorrectas únicas
+        int[] incorrectAnswers = new int[2];
+        int incorrectAnswer1, incorrectAnswer2;
+        do {
+            incorrectAnswer1 = rand.nextInt(20) + 1;
+        } while (incorrectAnswer1 == correctAnswer);
+    
+        do {
+            incorrectAnswer2 = rand.nextInt(20) + 1;
+        } while (incorrectAnswer2 == correctAnswer || incorrectAnswer2 == incorrectAnswer1);
+    
+        incorrectAnswers[0] = incorrectAnswer1;
+        incorrectAnswers[1] = incorrectAnswer2;
+    
+        // Asignar respuestas a las etiquetas
         int correctPosition = rand.nextInt(3);
         for (int i = 0; i < 3; i++) {
             if (i == correctPosition) {
                 answerLabels[i].setText(String.valueOf(correctAnswer));
             } else {
-                answerLabels[i].setText(String.valueOf(rand.nextInt(20) + 1));
+                answerLabels[i].setText(String.valueOf(incorrectAnswers[i < correctPosition ? i : i - 1]));
             }
         }
     }
@@ -114,6 +159,7 @@ public class GamePanel extends JPanel implements KeyListener {
                 player3X += thirdWidth;
                 player3.setLocation(player3X, initialY);
             }
+            repaint(); // Redibuja el panel para mostrar la nueva posición del jugador
         }
         generateQuestion();
     }
@@ -149,20 +195,12 @@ public class GamePanel extends JPanel implements KeyListener {
             answer = Integer.parseInt(answerLabels[2].getText());
             checkAnswer(3, answer);
         }
-
-        // Lógica para los jugadores controlados por AI
-        if (e.getKeyCode() == KeyEvent.VK_W || e.getKeyCode() == KeyEvent.VK_S || e.getKeyCode() == KeyEvent.VK_D) {
-            int aiAnswer = Integer.parseInt(answerLabels[rand.nextInt(3)].getText());
-            checkAnswer(2, aiAnswer);
-            aiAnswer = Integer.parseInt(answerLabels[rand.nextInt(3)].getText());
-            checkAnswer(3, aiAnswer);
-        }
     }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
+        g.drawImage(trackImage, 0, 0, getWidth(), getHeight(), this);
     }
 
     @Override
@@ -176,43 +214,13 @@ public class GamePanel extends JPanel implements KeyListener {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
 
-        JPanel mainPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        GamePanel centralPanel = new GamePanel("imagenes/pista.jpg");
-        LayerPanel leftPanel = new LayerPanel("imagenes/pista.jpg");
-        LayerPanel rightPanel = new LayerPanel("imagenes/pista.jpg");
-
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weighty = 1;
-        gbc.insets = new Insets(10, 10, 10, 10);
-
-        gbc.gridx = 0;
-        gbc.weightx = 1;
-        mainPanel.add(leftPanel, gbc);
-
-        gbc.gridx = 1;
-        gbc.weightx = 2;
-        mainPanel.add(centralPanel, gbc);
-
-        gbc.gridx = 2;
-        gbc.weightx = 1;
-        mainPanel.add(rightPanel, gbc);
-
-        frame.add(mainPanel);
-        frame.setVisible(true);
-    }
+               // Continuación del método main
+               GamePanel gamePanel = new GamePanel("Claudia\\imagenes\\pista.jpg", 
+               "Claudia\\imagenes\\jug1.jpg", 
+               "Claudia\\imagenes\\jug2.jpg", 
+               "Claudia\\imagenes\\jug3.jpg");
+frame.add(gamePanel);
+frame.setVisible(true);
+}
 }
 
-class LayerPanel extends JPanel {
-    private Image imagen;
-
-    public LayerPanel(String fondoImagen) {
-        this.imagen = new ImageIcon(fondoImagen).getImage();
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.drawImage(imagen, 0, 0, getWidth(), getHeight(), this);
-    }
-}
