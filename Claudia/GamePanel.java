@@ -15,7 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-public class PanelGame extends JPanel implements KeyListener {
+public class GamePanel extends JPanel implements KeyListener {
     private JLabel player1, player2, player3;
     private JLabel questionLabel;
     private JLabel[] answerLabels;
@@ -27,16 +27,16 @@ public class PanelGame extends JPanel implements KeyListener {
     private int correctAnswer;
     private Random rand;
 
-    public PanelGame(String rutaImagen) {
+    public GamePanel(String rutaImagen) {
         setFocusable(true);
         addKeyListener(this);
         setLayout(null);
 
         this.imagen = new ImageIcon(rutaImagen).getImage();
 
-        player1 = createPlayerLabel("images/player1.png");
-        player2 = createPlayerLabel("images/player2.png");
-        player3 = createPlayerLabel("images/player3.png");
+        player1 = createPlayerLabel("Claudia\\imagenes\\jug1.jpg");
+        player2 = createPlayerLabel("Claudia\\imagenes\\jug2.jpg");
+        player3 = createPlayerLabel("imagenes/jug3.jpg");
 
         player1X = 0;
         player2X = getWidth() / 3;
@@ -68,7 +68,7 @@ public class PanelGame extends JPanel implements KeyListener {
 
         finishLines = new JLabel[3];
         for (int i = 0; i < finishLines.length; i++) {
-            finishLines[i] = new JLabel(new ImageIcon("images/finish.png"));
+            finishLines[i] = new JLabel(new ImageIcon("imagenes/finish.png"));
             finishLines[i].setBounds(getWidth() / 3 * i + getWidth() / 6, 10, 50, 50);
             add(finishLines[i]);
         }
@@ -178,15 +178,14 @@ public class PanelGame extends JPanel implements KeyListener {
 
         JPanel mainPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        PanelGame centralPanel = new PanelGame("images/pista.png");
-        LayerPanel leftPanel = new LayerPanel("images/pista.png");
-        LayerPanel rightPanel = new LayerPanel("images/pista.png");
+        GamePanel centralPanel = new GamePanel("imagenes/pista.jpg");
+        LayerPanel leftPanel = new LayerPanel("imagenes/pista.jpg");
+        LayerPanel rightPanel = new LayerPanel("imagenes/pista.jpg");
 
         gbc.fill = GridBagConstraints.BOTH;
         gbc.weighty = 1;
         gbc.insets = new Insets(10, 10, 10, 10);
 
-       
         gbc.gridx = 0;
         gbc.weightx = 1;
         mainPanel.add(leftPanel, gbc);
