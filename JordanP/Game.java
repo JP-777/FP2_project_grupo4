@@ -8,6 +8,7 @@ public class PanelGame extends JPanel implements KeyListener {
     private int player1X, player1Y, player2X, player2Y, player3X, player3Y;
     private final int playerWidth = 50;
     private final int playerHeight = 50;
+    private final int divisions = 3; // Número de divisiones en cada carril
     private Image imagen;
 
     public PanelGame(String rutaImagen) {
@@ -21,14 +22,18 @@ public class PanelGame extends JPanel implements KeyListener {
         player2 = createPlayerLabel("player2.png");
         player3 = createPlayerLabel("player3.png");
 
+        int panelHeight = getHeight();
         player1X = 0;
-        player2X = getWidth() / 3;
-        player3X = 2 * getWidth() / 3;
+        player2X = 0;
+        player3X = 0;
 
-        int initialY = getHeight() - playerHeight - 20;
-        player1.setBounds(player1X, initialY, playerWidth, playerHeight);
-        player2.setBounds(player2X, initialY, playerWidth, playerHeight);
-        player3.setBounds(player3X, initialY, playerWidth, playerHeight);
+        player1Y = (panelHeight / divisions) - (playerHeight / 2);
+        player2Y = (panelHeight / divisions) - (playerHeight / 2);
+        player3Y = (panelHeight / divisions) - (playerHeight / 2);
+
+        player1.setBounds(player1X, player1Y, playerWidth, playerHeight);
+        player2.setBounds(player2X, player2Y, playerWidth, playerHeight);
+        player3.setBounds(player3X, player3Y, playerWidth, playerHeight);
 
         add(player1);
         add(player2);
@@ -47,24 +52,35 @@ public class PanelGame extends JPanel implements KeyListener {
     public void keyPressed(KeyEvent e) {
         int panelWidth = getWidth();
         int thirdWidth = panelWidth / 3;
-        int initialY = getHeight() - playerHeight - 20;
+        int panelHeight = getHeight();
 
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_W: player1Y = Math.max(player1Y - 10, 0); break;
-            case KeyEvent.VK_S: player1Y = Math.min(player1Y + 10, getHeight() - playerHeight); break;
-            case KeyEvent.VK_A: player1X = Math.max(player1X - 10, 0); break;
-            case KeyEvent.VK_D: player1X = Math.min(player1X + 10, thirdWidth - playerWidth); break;
+            case KeyEvent.VK_A: // Mover player 1 a la izquierda
+                if (player1X > 0) player1X -= thirdWidth;
+                break;
+            case KeyEvent.VK_D: // Mover player 1 a la derecha
+                if (player1X < 2 * thirdWidth) player1X += thirdWidth;
+                break;
 
-            case KeyEvent.VK_I: player2Y = Math.max(player2Y - 10, 0); break;
-            case KeyEvent.VK_K: player2Y = Math.min(player2Y + 10, getHeight() - playerHeight); break;
-            case KeyEvent.VK_J: player2X = Math.max(player2X - 10, thirdWidth); break;
-            case KeyEvent.VK_L: player2X = Math.min(player2X + 10, 2 * thirdWidth - playerWidth); break;
+            case KeyEvent.VK_J: // Mover player 2 a la izquierda
+                if (player2X > 0) player2X -= (thirdWidth+200);
+                break;
+            case KeyEvent.VK_L: // Mover player 2 a la derecha
+                if (player2X < 2 * thirdWidth) player2X += (thirdWidth+200);
+                break;
 
-            case KeyEvent.VK_UP: player3Y = Math.max(player3Y - 10, 0); break;
-            case KeyEvent.VK_DOWN: player3Y = Math.min(player3Y + 10, getHeight() - playerHeight); break;
-            case KeyEvent.VK_LEFT: player3X = Math.max(player3X - 10, 2 * thirdWidth); break;
-            case KeyEvent.VK_RIGHT: player3X = Math.min(player3X + 10, getWidth() - playerWidth); break;
+            case KeyEvent.VK_LEFT: // Mover player 3 a la izquierda
+                if (player3X > 0) player3X -= (thirdWidth+200);
+                break;
+            case KeyEvent.VK_RIGHT: // Mover player 3 a la derecha
+                if (player3X < 2 * thirdWidth) player3X += (thirdWidth+400);
+                break;
         }
+
+        // Mantener a los jugadores en sus divisiones respectivas
+        player1Y = (panelHeight / divisions) - (playerHeight / 2);
+        player2Y = (panelHeight / divisions) - (playerHeight / 2);
+        player3Y = (panelHeight / divisions) - (playerHeight / 2);
 
         player1.setLocation(player1X, player1Y);
         player2.setLocation(player2X, player2Y);
@@ -86,6 +102,7 @@ public class PanelGame extends JPanel implements KeyListener {
     public static void main(String[] args) {
         JFrame frame = new JFrame("Juego de Carreras Matemáticas");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setSize(800, 600);
 
         JPanel mainPanel = new JPanel(new GridBagLayout());
@@ -103,7 +120,7 @@ public class PanelGame extends JPanel implements KeyListener {
         mainPanel.add(leftPanel, gbc);
 
         gbc.gridx = 1;
-        gbc.weightx = 3;
+        gbc.weightx = 2;
         mainPanel.add(centralPanel, gbc);
 
         gbc.gridx = 2;
@@ -155,7 +172,7 @@ public class PanelGame extends JPanel implements KeyListener {
         rightPanel.add(puntajePanel, gbc);
 
         gbc.gridy = 3;
-        gbc.weighty = 0.4;
+        gbc.weighty = 0.7;
         rightPanel.add(mapaPanel, gbc);
 
         return rightPanel;
