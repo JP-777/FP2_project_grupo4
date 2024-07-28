@@ -49,7 +49,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         int response = JOptionPane.showConfirmDialog(
                 this,
                 "¡LA CARRERA VA A COMENZAR!"
-                        + "\nJugador 1 : Gato Marrón (W/A)"
+                        + "\nJugador 1 : Gato Marrón (A/D)"
                         + "\nJugador 2 : Gato Naranja (J/L)"
                         + "\nJugador 3 : Gato Blanco (Derecha/Izquierda)" ,
                 "CARRERA DE GATOS",
