@@ -2,16 +2,14 @@ package Game;
 
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.ImageIcon;
+import javax.swing.*;
+import javax.swing.Timer;
 import java.util.*;
-import javax.swing.SwingConstants;
-import javax.swing.Timer; 
-import javax.swing.JOptionPane; 
 import java.util.List;
 
 public class Game extends javax.swing.JFrame implements KeyListener {
     private static final int NUM_COLUMNS = 3;
-    private static final int duracionJuego = 30000; //TIEMPO DE JUEGO EN MILISEGUNDOS (30 SEGUNDOS)
+    private static final int GAME_DURATION_MS = 30000; // TIEMPO DE LA CARRERA EN MILISEGUNDOS (30 SEGUNDOS)
     private int columnWidth;
     private int correctAnswer;
     private Hitbox hitboxPlayer1;
@@ -20,7 +18,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
     private Hitbox hitboxPanel4;
     private Hitbox hitboxPanel5;
     private Hitbox hitboxPanel6;
-    private Timer timer, player1Timer, player2Timer, player3Timer, tiempoGame;
+    private Timer timer, player1Timer, player2Timer, player3Timer, gameTimer;
     
     private ImageIcon[] player1Sprites, player2Sprites, player3Sprites;
     private int player1Frame, player2Frame, player3Frame;
@@ -36,19 +34,47 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
         calculateColumns();
-        startAnimation();
         
+        // Mostrar la ventana principal
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                setVisible(true);
+                showStartDialog();
+            }
+        });
+    }
+
+    private void showStartDialog() {
+        int response = JOptionPane.showConfirmDialog(
+                this,
+                "¡LA CARRERA VA A COMENZAR!"
+                        + "\nJugador 1 : Gato Marrón (W/A)"
+                        + "\nJugador 2 : Gato Naranja (J/L)"
+                        + "\nJugador 3 : Gato Blanco (Derecha/Izquierda)" ,
+                "CARRERA DE GATOS",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE
+        );
+        if (response == JOptionPane.OK_OPTION) {
+            startGame();
+        }
+    }
+
+    private void startGame() {
+        startAnimation();
+
         hitboxPlayer1 = new Hitbox(player1.getX(), player1.getY(), player1.getWidth(), player1.getHeight());
         hitboxPlayer2 = new Hitbox(player2.getX(), player2.getY(), player2.getWidth(), player2.getHeight());
         hitboxPlayer3 = new Hitbox(player3.getX(), player3.getY(), player3.getWidth(), player3.getHeight());
-        
+
         hitboxPanel4 = new Hitbox(answerPanel.getX(), answerPanel.getY(), answerPanel.getWidth(), answerPanel.getHeight());
         hitboxPanel5 = new Hitbox(answerPanel1.getX(), answerPanel1.getY(), answerPanel1.getWidth(), answerPanel1.getHeight());
         hitboxPanel6 = new Hitbox(answerPanel2.getX(), answerPanel2.getY(), answerPanel2.getWidth(), answerPanel2.getHeight());
-        
+
         generateRandomSumAndAnswers();
-        
-        timer = new Timer(25, new ActionListener() {
+
+        timer = new Timer(15, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 movePanel(answerPanel, hitboxPanel4, 0, -2);
@@ -58,25 +84,27 @@ public class Game extends javax.swing.JFrame implements KeyListener {
             }
         });
         timer.start();
-        
-        // TEMPORIZADOR
-        tiempoGame = new Timer(duracionJuego, new ActionListener() {
+
+        // Temporizador para el juego
+        gameTimer = new Timer(GAME_DURATION_MS, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                finJuego();
+                endGame();
             }
         });
-        tiempoGame.setRepeats(false);
-        tiempoGame.start();
+        gameTimer.setRepeats(false); // El temporizador solo debe ejecutarse una vez
+        gameTimer.start();
     }
-    
-    private void finJuego() {
+
+    private void endGame() {
+        // Detener todos los temporizadores de animación
         player1Timer.stop();
         player2Timer.stop();
         player3Timer.stop();
         timer.stop();
-        
-        String winner = "EMPATE";
+
+        // Determinar el jugador con la puntuación más alta
+        String winner = "Empate";
         if (player1Score > player2Score && player1Score > player3Score) {
             winner = "JUGADOR1";
         } else if (player2Score > player1Score && player2Score > player3Score) {
@@ -86,7 +114,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         }
 
         // Mostrar mensaje de ganador
-        JOptionPane.showMessageDialog(this, "> EL GANADOR ES : " + winner, "SE ACABÓ EL TIEMPO", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, "EL GANADOR ES : " + winner, "Fin del Juego", JOptionPane.INFORMATION_MESSAGE);
     }
     
     @SuppressWarnings("unchecked")
@@ -143,7 +171,6 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         scoreLabel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         mapRacers.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/minigatos.png"))); // NOI18N
-        mapRacers.setMinimumSize(new java.awt.Dimension(100, 300));
 
         map.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/meta.png"))); // NOI18N
         map.setAlignmentX(0.5F);
@@ -188,8 +215,9 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         background.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/background.png"))); // NOI18N
 
         player1.setBackground(new java.awt.Color(255, 255, 255));
+        player1.setForeground(new java.awt.Color(0, 0, 0));
         player1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/player1.png"))); // NOI18N
-        player1.setText("jLabel1");
+        player1.setText("j1");
         player1.setMaximumSize(new java.awt.Dimension(200, 200));
         player1.setMinimumSize(new java.awt.Dimension(200, 200));
         player1.setName(""); // NOI18N
@@ -221,7 +249,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         answerPanel.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         answerPanel.setToolTipText("RESPUESTA");
 
-        answer.setText("RESPUESTA");
+        answer.setText("0");
         answer.setMaximumSize(new java.awt.Dimension(242, 200));
         answer.setMinimumSize(new java.awt.Dimension(242, 200));
         answer.setName(""); // NOI18N
@@ -249,7 +277,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         answerPanel1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         answerPanel1.setToolTipText("RESPUESTA");
 
-        answer1.setText("RESPUESTA");
+        answer1.setText("0");
         answer1.setMaximumSize(new java.awt.Dimension(242, 200));
         answer1.setMinimumSize(new java.awt.Dimension(242, 200));
         answer1.setName(""); // NOI18N
@@ -277,7 +305,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         answerPanel2.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         answerPanel2.setToolTipText("RESPUESTA");
 
-        answer2.setText("RESPUESTA");
+        answer2.setText("0");
         answer2.setMaximumSize(new java.awt.Dimension(242, 200));
         answer2.setMinimumSize(new java.awt.Dimension(242, 200));
         answer2.setName(""); // NOI18N
