@@ -1,0 +1,7 @@
+- Falta desarrollar el código del mapa
+- Ajustar la imagen del mapa
+- Ajustar "minigatos" para que vaya de izquierda a derecha
+  en frente del mapa, simbolizando
+(que la duración de minigatos tenga la misma duración 
+que "private static final int duracionJuego", asi simbolizando la 
+duración de la carrera)
