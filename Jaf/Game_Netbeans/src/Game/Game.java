@@ -10,6 +10,12 @@ import java.util.List;
 public class Game extends javax.swing.JFrame implements KeyListener {
     private static final int NUM_COLUMNS = 3;
     private static final int GAME_DURATION_MS = 30000; // TIEMPO DE LA CARRERA EN MILISEGUNDOS (30 SEGUNDOS)
+    private static final int NUM_QUESTIONS = 5; // NUMERO DE PREGUNTAS EN EL REPASO
+    private int currentQuestion = 0;
+    private int reviewScore = 0;
+    private List<JButton> answerButtons;
+    private JDialog reviewDialog;
+    private JPanel reviewPanel;
     private int columnWidth;
     private int correctAnswer;
     private Hitbox hitboxPlayer1;
@@ -49,10 +55,10 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         int response = JOptionPane.showConfirmDialog(
                 this,
                 "¡LA CARRERA VA A COMENZAR!"
-                        + "\nJugador 1 : Gato Marrón (A/D)"
-                        + "\nJugador 2 : Gato Naranja (J/L)"
-                        + "\nJugador 3 : Gato Blanco (Derecha/Izquierda)" ,
-                "CARRERA DE GATOS",
+                        + "\nJUGADOR 1 : Gato Marrón (A/D)"
+                        + "\nJUGADOR 2 : Gato Naranja (J/L)"
+                        + "\nJUGADOR 3 : Gato Blanco (Derecha/Izquierda)" ,
+                "😺 CARRERA DE GATOS 😺",
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.INFORMATION_MESSAGE
         );
@@ -89,22 +95,24 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         gameTimer = new Timer(GAME_DURATION_MS, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                endGame();
+                finJuego();
             }
         });
         gameTimer.setRepeats(false); // El temporizador solo debe ejecutarse una vez
         gameTimer.start();
     }
-
-    private void endGame() {
-        // Detener todos los temporizadores de animación
+    
+    // TERMINAR EL JUEGO LUEGO DE QUE SE HAYA TERMINADO EL TIEMPO
+    private void finJuego() {
+        // DETENER TODAS LAS ANIMACIONES
         player1Timer.stop();
         player2Timer.stop();
         player3Timer.stop();
         timer.stop();
+        gameTimer.stop();
 
-        // Determinar el jugador con la puntuación más alta
-        String winner = "Empate";
+        // DETERMINAR EL JUGADOR CON LA PUNTUACIÓN MAS ALTA
+        String winner = "EMPATE ENTRE GATOS";
         if (player1Score > player2Score && player1Score > player3Score) {
             winner = "JUGADOR1";
         } else if (player2Score > player1Score && player2Score > player3Score) {
@@ -113,9 +121,115 @@ public class Game extends javax.swing.JFrame implements KeyListener {
             winner = "JUGADOR3";
         }
 
-        // Mostrar mensaje de ganador
-        JOptionPane.showMessageDialog(this, "EL GANADOR ES : " + winner, "Fin del Juego", JOptionPane.INFORMATION_MESSAGE);
+        // MOSTRAR EL GANADOR
+        JOptionPane.showMessageDialog(this, "EL GANADOR ES : " + winner, "😺 FIN DEL JUEGO 😺", JOptionPane.INFORMATION_MESSAGE);
+
+        // Mostrar opción para repasar
+        int response = JOptionPane.showConfirmDialog(
+                this,
+                "Eso fue divertido. ¡Repasemos lo aprendido!",
+                "😺 REPASEMOS LO APRENDIDO 😺",
+                JOptionPane.OK_OPTION,
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        if (response == JOptionPane.OK_OPTION) {
+            formularioExamen();
+        }
     }
+    
+    //FORMULARIO TIPO EXAMEN CON (5) PREGUNTAS, PARA REPASAR LO APRENDIDO
+    private void formularioExamen() {
+        currentQuestion = 0;
+        reviewScore = 0;
+        
+        reviewDialog = new JDialog(this, "😺 REPASO 😺", true);
+        reviewDialog.setSize(400, 300);
+        reviewDialog.setLocationRelativeTo(this);
+        
+        reviewPanel = new JPanel();
+        reviewPanel.setLayout(new BorderLayout());
+        
+        reviewDialog.add(reviewPanel);
+        proximaPregunta();
+        
+        reviewDialog.setVisible(true);
+    }
+
+    private void proximaPregunta() {
+        if (currentQuestion >= NUM_QUESTIONS) {
+            finExamen();
+            return;
+        }
+
+        reviewPanel.removeAll();
+        
+        Random r = new Random();
+        int num1 = r.nextInt(21);
+        int num2 = r.nextInt(21);
+        int correctAnswer = num1 + num2;
+
+        // CREA UN PANEL CON 3 BOTONES DE RESPUESTA
+        JPanel questionPanel = new JPanel();
+        questionPanel.setLayout(new GridLayout(4, 1));
+
+        JLabel questionLabel = new JLabel(num1 + " + " + num2 + " = ?");
+        questionLabel.setFont(new Font("Arial", Font.BOLD, 24));
+        questionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        questionPanel.add(questionLabel);
+
+        answerButtons = new ArrayList<>();
+        int correctButtonIndex = r.nextInt(3);
+        int[] answers = new int[3];
+        answers[correctButtonIndex] = correctAnswer;
+        for (int i = 0; i < 3; i++) {
+            if (i != correctButtonIndex) {
+                answers[i] = correctAnswer + r.nextInt(5) + 1;
+            }
+        }
+        
+        Font buttonFont = new Font("Arial", Font.BOLD, 18);
+
+        for (int i = 0; i < 3; i++) {
+            JButton button = new JButton(String.valueOf(answers[i]));
+            button.setFont(buttonFont);
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (Integer.parseInt(button.getText()) == correctAnswer) {
+                        reviewScore++;
+                    }
+                    currentQuestion++;
+                    proximaPregunta();
+                }
+            });
+            answerButtons.add(button);
+            questionPanel.add(button);
+        }
+
+        reviewPanel.add(questionPanel, BorderLayout.CENTER);
+        reviewPanel.revalidate();
+        reviewPanel.repaint();
+    }
+
+    private void finExamen() {
+    reviewDialog.dispose(); 
+
+    //VERIFICA EL PUNTAJE DEL EXAMEN
+    String resultMessage;
+    if (reviewScore >= 3) {
+        resultMessage = "Wow, ¡BIEN HECHO!";
+    } else {
+        resultMessage = "Oh... Más suerte a la proxima.";
+    }
+
+    // Muestra el resultado final
+    JOptionPane.showMessageDialog(this,
+            "Veamos tu resultado... " + reviewScore + "/" + NUM_QUESTIONS + "\n" + resultMessage,
+            "😺 RESULTADOS 😺 ",
+            JOptionPane.INFORMATION_MESSAGE
+    );
+}
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -128,7 +242,6 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         suma = new javax.swing.JLabel();
         puesto = new javax.swing.JLabel();
         scoreLabel = new javax.swing.JLabel();
-        mapRacers = new javax.swing.JLabel();
         map = new javax.swing.JLabel();
         gamePanel = new javax.swing.JPanel();
         background = new javax.swing.JLabel();
@@ -170,26 +283,19 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         scoreLabel.setText("PUNTAJES");
         scoreLabel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        mapRacers.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/minigatos.png"))); // NOI18N
-
-        map.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/meta.png"))); // NOI18N
-        map.setAlignmentX(0.5F);
-        map.setMinimumSize(new java.awt.Dimension(200, 100));
-        map.setPreferredSize(new java.awt.Dimension(696, 100));
+        map.setText("TIEMPO : ");
+        map.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         javax.swing.GroupLayout rightPanelLayout = new javax.swing.GroupLayout(rightPanel);
         rightPanel.setLayout(rightPanelLayout);
         rightPanelLayout.setHorizontalGroup(
             rightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(scoreLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(suma, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+            .addComponent(suma, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
             .addComponent(puesto, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addGroup(rightPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(map, javax.swing.GroupLayout.PREFERRED_SIZE, 95, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(mapRacers, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(59, 59, 59))
+                .addComponent(map, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         rightPanelLayout.setVerticalGroup(
             rightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -199,15 +305,10 @@ public class Game extends javax.swing.JFrame implements KeyListener {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(puesto, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(scoreLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 107, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGroup(rightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(rightPanelLayout.createSequentialGroup()
-                        .addGap(64, 64, 64)
-                        .addComponent(map, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(rightPanelLayout.createSequentialGroup()
-                        .addGap(27, 27, 27)
-                        .addComponent(mapRacers, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(39, Short.MAX_VALUE))
+                .addComponent(scoreLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 135, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(map, javax.swing.GroupLayout.DEFAULT_SIZE, 141, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         bg.add(rightPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(570, 0, 280, 520));
@@ -333,19 +434,29 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         gamePanelLayout.setHorizontalGroup(
             gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, gamePanelLayout.createSequentialGroup()
-                .addGap(59, 59, 59)
-                .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(answerPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(player3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 69, Short.MAX_VALUE)
                 .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(answerPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(player2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(65, 65, 65)
+                    .addGroup(gamePanelLayout.createSequentialGroup()
+                        .addGap(59, 59, 59)
+                        .addComponent(answerPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(gamePanelLayout.createSequentialGroup()
+                        .addGap(49, 49, 49)
+                        .addComponent(player3, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(player1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(answerPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(59, 59, 59))
+                    .addGroup(gamePanelLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 69, Short.MAX_VALUE)
+                        .addComponent(answerPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(gamePanelLayout.createSequentialGroup()
+                        .addGap(55, 55, 55)
+                        .addComponent(player2, javax.swing.GroupLayout.PREFERRED_SIZE, 1, Short.MAX_VALUE)))
+                .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, gamePanelLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(player1, javax.swing.GroupLayout.PREFERRED_SIZE, 132, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(41, 41, 41))
+                    .addGroup(gamePanelLayout.createSequentialGroup()
+                        .addGap(65, 65, 65)
+                        .addComponent(answerPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(59, 59, 59))))
             .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(gamePanelLayout.createSequentialGroup()
                     .addComponent(background, javax.swing.GroupLayout.DEFAULT_SIZE, 564, Short.MAX_VALUE)
@@ -356,10 +467,11 @@ public class Game extends javax.swing.JFrame implements KeyListener {
             .addGroup(gamePanelLayout.createSequentialGroup()
                 .addGap(24, 24, 24)
                 .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(player2, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(player3, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(player2, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(player3, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(player1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 303, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 318, Short.MAX_VALUE)
                 .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(answerPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -368,7 +480,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
                 .addGap(42, 42, 42))
             .addGroup(gamePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(gamePanelLayout.createSequentialGroup()
-                    .addComponent(background, javax.swing.GroupLayout.PREFERRED_SIZE, 540, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(background, javax.swing.GroupLayout.PREFERRED_SIZE, 555, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGap(0, 0, Short.MAX_VALUE)))
         );
 
@@ -382,7 +494,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(bg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(17, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -394,6 +506,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
     
     private void customizeComponents() {
         // Redimensionar la imagen y establecerla en jLabel1
+        
         player1Sprites = loadSprites("/images/player1/1.", 4); // 4 frames de animación
         player2Sprites = loadSprites("/images/player2/2.", 4);
         player3Sprites = loadSprites("/images/player3/3.", 4);
@@ -730,7 +843,6 @@ public class Game extends javax.swing.JFrame implements KeyListener {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JPanel leftPanel;
     private javax.swing.JLabel map;
-    private javax.swing.JLabel mapRacers;
     private javax.swing.JLabel player1;
     private javax.swing.JLabel player2;
     private javax.swing.JLabel player3;
