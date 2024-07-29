@@ -11,11 +11,12 @@ public class Game extends javax.swing.JFrame implements KeyListener {
     private static final int NUM_COLUMNS = 3;
     private static final int GAME_DURATION_MS = 30000; // TIEMPO DE LA CARRERA EN MILISEGUNDOS (30 SEGUNDOS)
     private static final int NUM_QUESTIONS = 5; // NUMERO DE PREGUNTAS EN EL REPASO
-    private int currentQuestion = 0;
+    //REPASO
+    private int currentQuestion = 0; 
     private int reviewScore = 0;
     private List<JButton> answerButtons;
     private JDialog reviewDialog;
-    private JPanel reviewPanel;
+    private JPanel reviewPanel; //REPASO
     private int columnWidth;
     private int correctAnswer;
     private Hitbox hitboxPlayer1;
@@ -35,23 +36,26 @@ public class Game extends javax.swing.JFrame implements KeyListener {
 
     public Game() {
         initComponents();
+        setResizable(false);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
         customizeComponents();
         addKeyListener(this);
         setFocusable(true);
         setFocusTraversalKeysEnabled(false);
-        calculateColumns();
+        calcularColumnas();
         
-        // Mostrar la ventana principal
+        // MOSTRAR LA VENTANA PRINCIPAL
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 setVisible(true);
-                showStartDialog();
+                mensajeInicio();
             }
         });
     }
 
-    private void showStartDialog() {
+    private void mensajeInicio() {
         int response = JOptionPane.showConfirmDialog(
                 this,
                 "¡LA CARRERA VA A COMENZAR!"
@@ -63,12 +67,12 @@ public class Game extends javax.swing.JFrame implements KeyListener {
                 JOptionPane.INFORMATION_MESSAGE
         );
         if (response == JOptionPane.OK_OPTION) {
-            startGame();
+            comenzarJuego();
         }
     }
 
-    private void startGame() {
-        startAnimation();
+    private void comenzarJuego() {
+        comenzarAnimacion();
 
         hitboxPlayer1 = new Hitbox(player1.getX(), player1.getY(), player1.getWidth(), player1.getHeight());
         hitboxPlayer2 = new Hitbox(player2.getX(), player2.getY(), player2.getWidth(), player2.getHeight());
@@ -78,15 +82,15 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         hitboxPanel5 = new Hitbox(answerPanel1.getX(), answerPanel1.getY(), answerPanel1.getWidth(), answerPanel1.getHeight());
         hitboxPanel6 = new Hitbox(answerPanel2.getX(), answerPanel2.getY(), answerPanel2.getWidth(), answerPanel2.getHeight());
 
-        generateRandomSumAndAnswers();
+        generarSumasRespuestas();
 
         timer = new Timer(15, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                movePanel(answerPanel, hitboxPanel4, 0, -2);
-                movePanel(answerPanel1, hitboxPanel5, 0, -2);
-                movePanel(answerPanel2, hitboxPanel6, 0, -2);
-                checkCollisions();
+                moverPanel(answerPanel, hitboxPanel4, 0, -2);
+                moverPanel(answerPanel1, hitboxPanel5, 0, -2);
+                moverPanel(answerPanel2, hitboxPanel6, 0, -2);
+                colisionGato();
             }
         });
         timer.start();
@@ -273,16 +277,25 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         bg.setBackground(new java.awt.Color(204, 255, 255));
         bg.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        suma.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        suma.setText("                             SUMA");
-        suma.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        rightPanel.setBackground(new java.awt.Color(152, 205, 54));
+        rightPanel.setForeground(new java.awt.Color(204, 255, 204));
+        rightPanel.setEnabled(false);
 
+        suma.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        suma.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        suma.setText("SUMA");
+
+        puesto.setForeground(new java.awt.Color(0, 0, 0));
+        puesto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         puesto.setText("PUESTOS");
         puesto.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
+        scoreLabel.setForeground(new java.awt.Color(0, 0, 0));
+        scoreLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         scoreLabel.setText("PUNTAJES");
         scoreLabel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
+        map.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         map.setText("TIEMPO : ");
         map.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
@@ -291,11 +304,9 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         rightPanelLayout.setHorizontalGroup(
             rightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(scoreLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(suma, javax.swing.GroupLayout.DEFAULT_SIZE, 280, Short.MAX_VALUE)
+            .addComponent(suma, javax.swing.GroupLayout.DEFAULT_SIZE, 290, Short.MAX_VALUE)
             .addComponent(puesto, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-            .addGroup(rightPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(map, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(map, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         rightPanelLayout.setVerticalGroup(
             rightPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -311,7 +322,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
                 .addContainerGap())
         );
 
-        bg.add(rightPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(570, 0, 280, 520));
+        bg.add(rightPanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(570, 0, 290, 520));
 
         background.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/background.png"))); // NOI18N
 
@@ -492,9 +503,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(bg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(bg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -507,9 +516,9 @@ public class Game extends javax.swing.JFrame implements KeyListener {
     private void customizeComponents() {
         // Redimensionar la imagen y establecerla en jLabel1
         
-        player1Sprites = loadSprites("/images/player1/1.", 4); // 4 frames de animación
-        player2Sprites = loadSprites("/images/player2/2.", 4);
-        player3Sprites = loadSprites("/images/player3/3.", 4);
+        player1Sprites = cargarSprites("/images/player1/1.", 4); // 4 frames de animación
+        player2Sprites = cargarSprites("/images/player2/2.", 4);
+        player3Sprites = cargarSprites("/images/player3/3.", 4);
         
         player1Frame = 0;
         player2Frame = 0;
@@ -573,7 +582,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
     map.setHorizontalAlignment(SwingConstants.CENTER); 
     }
     
-    private ImageIcon[] loadSprites(String pathPrefix, int frameCount) {
+    private ImageIcon[] cargarSprites(String pathPrefix, int frameCount) {
         
         ImageIcon[] sprites = new ImageIcon[frameCount];
         for (int i = 0; i < frameCount; i++) {
@@ -584,7 +593,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         return sprites;
     }
     
-    private void startAnimation() {
+    private void comenzarAnimacion() {
         player1Timer = new Timer(100, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -612,7 +621,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         player3Timer.start();
     }
     
-    private void generateRandomSumAndAnswers() {
+    private void generarSumasRespuestas() {
         Random rand = new Random();
         int num1 = rand.nextInt(21);
         int num2 = rand.nextInt(21);
@@ -683,7 +692,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         }
     }
 
-    private void movePlayer(javax.swing.JLabel player, Hitbox hitbox, int dx, int dy) {
+    private void moverGato(javax.swing.JLabel player, Hitbox hitbox, int dx, int dy) {
         int auxX = player.getX();
         int auxY = player.getY();
 
@@ -699,7 +708,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         hitbox.update(x, y);
     }
     
-        private void movePanel(javax.swing.JPanel panel, Hitbox hitbox, int dx, int dy) {
+        private void moverPanel(javax.swing.JPanel panel, Hitbox hitbox, int dx, int dy) {
         int auxX = panel.getX();
         int auxY = panel.getY();
 
@@ -715,56 +724,56 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         hitbox.update(x, y);
     }
 
-    private void checkCollisions() {
+    private void colisionGato() {
         if (hitboxPlayer1.intersects(hitboxPanel4) && answer.getText().equals(String.valueOf(correctAnswer))) {
             player1Score++;
             actualizarPuntajes();
             actualizarPuestos();
-            generateRandomSumAndAnswers();
+            generarSumasRespuestas();
         } else if (hitboxPlayer1.intersects(hitboxPanel5) && answer1.getText().equals(String.valueOf(correctAnswer))) {
             player1Score++;
             actualizarPuntajes();
             actualizarPuestos();
-            generateRandomSumAndAnswers();
+            generarSumasRespuestas();
         } else if (hitboxPlayer1.intersects(hitboxPanel6) && answer2.getText().equals(String.valueOf(correctAnswer))) {
             player1Score++;
             actualizarPuntajes();
             actualizarPuestos();
-            generateRandomSumAndAnswers();
+            generarSumasRespuestas();
         }
 
         if (hitboxPlayer2.intersects(hitboxPanel4) && answer.getText().equals(String.valueOf(correctAnswer))) {
             player2Score++;
             actualizarPuntajes();
             actualizarPuestos();
-            generateRandomSumAndAnswers();
+            generarSumasRespuestas();
         } else if (hitboxPlayer2.intersects(hitboxPanel5) && answer1.getText().equals(String.valueOf(correctAnswer))) {
             player2Score++;
             actualizarPuntajes();
             actualizarPuestos();
-            generateRandomSumAndAnswers();
+            generarSumasRespuestas();
         } else if (hitboxPlayer2.intersects(hitboxPanel6) && answer2.getText().equals(String.valueOf(correctAnswer))) {
             player2Score++;
             actualizarPuntajes();
             actualizarPuestos();
-            generateRandomSumAndAnswers();
+            generarSumasRespuestas();
         }
 
         if (hitboxPlayer3.intersects(hitboxPanel4) && answer.getText().equals(String.valueOf(correctAnswer))) {
             player3Score++;
             actualizarPuntajes();
             actualizarPuestos();
-            generateRandomSumAndAnswers();
+            generarSumasRespuestas();
         } else if (hitboxPlayer3.intersects(hitboxPanel5) && answer1.getText().equals(String.valueOf(correctAnswer))) {
             player3Score++;
             actualizarPuntajes();
             actualizarPuestos();
-            generateRandomSumAndAnswers();
+            generarSumasRespuestas();
         } else if (hitboxPlayer3.intersects(hitboxPanel6) && answer2.getText().equals(String.valueOf(correctAnswer))) {
             player3Score++;
             actualizarPuntajes();
             actualizarPuestos();
-            generateRandomSumAndAnswers();
+            generarSumasRespuestas();
         }
     }
     
@@ -774,23 +783,23 @@ public class Game extends javax.swing.JFrame implements KeyListener {
 
         // JUGADOR 1 - A Y D
         if (key == KeyEvent.VK_A) {
-            movePlayer(player1, hitboxPlayer1, -columnWidth, 0);
+            moverGato(player1, hitboxPlayer1, -columnWidth, 0);
         } else if (key == KeyEvent.VK_D) {
-            movePlayer(player1, hitboxPlayer1, +columnWidth, 0);
+            moverGato(player1, hitboxPlayer1, +columnWidth, 0);
         }
 
         // JUGADOR 2 - J Y L
         if (key == KeyEvent.VK_J) {
-            movePlayer(player2, hitboxPlayer2, -columnWidth, 0);
+            moverGato(player2, hitboxPlayer2, -columnWidth, 0);
         } else if (key == KeyEvent.VK_L) {
-            movePlayer(player2, hitboxPlayer2, +columnWidth, 0);
+            moverGato(player2, hitboxPlayer2, +columnWidth, 0);
         }
 
         // JUGADOR 3 - IZQUIERDA Y DERECHA
         if (key == KeyEvent.VK_LEFT) {
-            movePlayer(player3, hitboxPlayer3, -columnWidth, 0);
+            moverGato(player3, hitboxPlayer3, -columnWidth, 0);
         } else if (key == KeyEvent.VK_RIGHT) {
-            movePlayer(player3, hitboxPlayer3, +columnWidth, 0);
+            moverGato(player3, hitboxPlayer3, +columnWidth, 0);
         }
     }
     
@@ -800,7 +809,7 @@ public class Game extends javax.swing.JFrame implements KeyListener {
     @Override
     public void keyTyped(KeyEvent e) {}
     
-    private void calculateColumns() {
+    private void calcularColumnas() {
         int panelWidth = gamePanel.getWidth();
         columnWidth = panelWidth / NUM_COLUMNS;
     }
