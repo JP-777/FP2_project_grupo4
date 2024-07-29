@@ -831,10 +831,9 @@ public class Game extends javax.swing.JFrame implements KeyListener {
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Game.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Game().setVisible(true);
+                SwingUtilities.invokeLater(() -> new Game().setVisible(true));
             }
         });
     }
